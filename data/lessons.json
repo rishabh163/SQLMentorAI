@@ -1,0 +1,27 @@
+[
+  {
+    "module": "SELECT + WHERE",
+    "explanation": "SELECT chooses the columns you want to see, and FROM names the table. WHERE keeps only the rows that match a condition. Text values go in single quotes, for example 'Mumbai'. You can join conditions with AND (both must be true) and OR (one is enough).",
+    "example": "SELECT name, city FROM customers WHERE city = 'Mumbai'"
+  },
+  {
+    "module": "Aggregate Functions",
+    "explanation": "Aggregate functions turn many rows into one result. COUNT counts rows, SUM adds numbers, AVG gives the average, MIN gives the smallest value and MAX gives the largest. Without GROUP BY, the answer is a single row.",
+    "example": "SELECT MIN(price), MAX(price), AVG(price) FROM products"
+  },
+  {
+    "module": "GROUP BY + HAVING",
+    "explanation": "GROUP BY puts rows with the same value into one group, and you get one result row per group. WHERE filters rows before they are grouped. HAVING filters the groups after the totals are calculated. The example shows only categories that have at least 3 products.",
+    "example": "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) >= 3"
+  },
+  {
+    "module": "INNER JOIN + LEFT JOIN",
+    "explanation": "A JOIN combines rows from two tables using a shared column. INNER JOIN keeps only the rows that match in both tables. LEFT JOIN keeps every row from the left table, and shows NULL when there is no match on the right. Filtering with IS NULL after a LEFT JOIN finds rows with no match. The example finds products that were never ordered.",
+    "example": "SELECT p.product_name, o.order_id FROM products p LEFT JOIN orders o ON p.product_id = o.product_id WHERE o.order_id IS NULL"
+  },
+  {
+    "module": "Subqueries",
+    "explanation": "A subquery is a query inside another query, written in brackets. SQLite runs the inner query first, and the outer query uses its result. The example finds customers who placed an order worth more than 50000.",
+    "example": "SELECT name FROM customers WHERE customer_id IN (SELECT customer_id FROM orders WHERE amount > 50000)"
+  }
+]
