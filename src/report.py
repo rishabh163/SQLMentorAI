@@ -49,15 +49,16 @@ def _card(pdf, x, y, w, h, accent):
 
 
 def _title(pdf, text, x, y, w):
-    """Centered heading that sits on the panel's top line, so the line shows on both sides."""
+    """Centered section heading inside a rounded box with a border."""
     pdf.set_font("Helvetica", "B", 13)
-    box_w = pdf.get_string_width(text) + 12
+    box_w = pdf.get_string_width(text) + 14
     pdf.set_fill_color(255, 255, 255)
-    pdf.rect(x + (w - box_w) / 2, y + 1.5, box_w, 6, style="F")  # hides the line behind the text
+    pdf.set_draw_color(*INDIGO)
+    pdf.set_line_width(0.6)
+    pdf.rect(x + (w - box_w) / 2, y, box_w, 9, style="DF", round_corners=True, corner_radius=3)
     pdf.set_xy(x, y)
     pdf.set_text_color(*DEEP_BLUE)
     pdf.cell(w, 9, text, align="C")
-
 
 def _panel(pdf, x, y, w, h, title):
     """A rounded panel with a light shadow, a coloured border and a heading on its top edge."""
