@@ -97,12 +97,25 @@ def show_learn():
         label = "AI tutor" if shown["source"] == "ai" else "Note"
         st.info(f"**{label}:** {shown['text']}")
 
+def reset_question():
+    """Called when the difficulty changes, so a new question is picked."""
+    st.session_state.question = None
+    st.session_state.hints_shown = 0
+    st.session_state.result = None
+
+
+def practice_level(attempts):
+    """Auto uses the level from progress.py. Otherwise use the learner's choice."""
+    choice = st.session_state.get("difficulty_choice", "Auto")
+    if choice == "Auto":
+        return current_difficulty(attempts)
+    return choice
 
 def show_practice(learner, attempts, questions):
     """Practice mode: solve a question, get feedback, save progress."""
     # Pick a question if we do not have one yet
     if st.session_state.question is None:
-        level = current_difficulty(attempts)
+        level = practice_level(attempts)
         st.session_state.question = next_question(questions, attempts, level)
     question = st.session_state.question
 
@@ -149,7 +162,7 @@ def show_practice(learner, attempts, questions):
         if result["status"] == "correct":
             st.success("Correct! Well done.")
             if st.button("Next question →", type="primary"):
-                level = current_difficulty(attempts)
+                level = practice_level(attempts)
                 st.session_state.question = next_question(questions, attempts, level)
                 st.session_state.hints_shown = 0
                 st.session_state.result = None
@@ -389,7 +402,14 @@ if st.session_state.get("learner") != learner:
     st.session_state.chat = []
 
 attempts = st.session_state.attempts
-
+sidebar_label("DIFFICULTY")
+st.sidebar.selectbox(
+    "Difficulty",
+    ["Auto", "Beginner", "Intermediate", "Advanced"],
+    key="difficulty_choice",
+    on_change=reset_question,
+    label_visibility="collapsed",
+)
 sidebar_label("MODES")
 mode = st.sidebar.radio(
     "Mode",
