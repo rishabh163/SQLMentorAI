@@ -12,7 +12,7 @@ import os
 import re
 import urllib.request
 
-from src.prompts import HINT_TEMPLATE, LESSON_TEMPLATE, TUTOR_SYSTEM
+from src.prompts import FEEDBACK_TEMPLATE, HINT_TEMPLATE, LESSON_TEMPLATE, TUTOR_SYSTEM
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 GEMINI_MODEL = "gemini-3.5-flash"
@@ -188,6 +188,44 @@ def explain_lesson(lesson) -> dict:
             pass
     return {"text": "AI help is not connected right now. Read the key points again, "
                     "then press Run example to see the result.", "source": "fallback"}
+
+
+# ---------- Learning feedback (summary and PDF) ----------
+
+def fallback_feedback(summary) -> str:
+    """Feedback written from the numbers, when the AI is not available."""
+    accuracy = summary["overall_accuracy"]
+    if accuracy is None:
+        return "You have not answered any question yet. Start with Practice mode to get your feedback."
+    parts = [f"Your level is {summary['level']} and your overall accuracy is {accuracy}%."]
+    if summary["strengths"]:
+        parts.append("You are strong in " + ", ".join(summary["strengths"]) + ".")
+    if summary["weak_areas"]:
+        parts.append("You need more practice in " + ", ".join(summary["weak_areas"]) + ".")
+    parts.append(summary["recommendation"])
+    return " ".join(parts)
+
+
+def get_feedback(summary) -> dict:
+    """Return {"text": ..., "source": "ai" or "fallback"}. Only numbers go to the AI."""
+    if ai_available() and summary["overall_accuracy"] is not None:
+        try:
+            lines = []
+            for module, s in summary["topic_progress"].items():
+                if s["attempted"] == 0:
+                    lines.append(f"- {module}: not tried yet")
+                else:
+                    lines.append(f"- {module}: solved {s['correct']} of {s['attempted']} "
+                                 f"tried, {s['accuracy']}%")
+            prompt = FEEDBACK_TEMPLATE.format(
+                level=summary["level"], accuracy=f"{summary['overall_accuracy']}%",
+                modules="\n".join(lines))
+            text = ask_llm(TUTOR_SYSTEM, [{"role": "user", "content": prompt}], 250)
+            if text:
+                return {"text": text, "source": "ai"}
+        except Exception:
+            pass  # any problem: use the simple feedback below
+    return {"text": fallback_feedback(summary), "source": "fallback"}
 
 
 if __name__ == "__main__":

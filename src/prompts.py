@@ -55,3 +55,12 @@ Use one new small example with our tables. Maximum 100 words.
 Module: {module}
 Lesson text: {explanation}
 Example query: {example}"""
+
+# Used by the "Get learning feedback" button (only numbers are sent, no SQL)
+FEEDBACK_TEMPLATE = """Write a short learning feedback for the student, using only the numbers below.
+Level: {level}
+Overall accuracy: {accuracy}
+Module results:
+{modules}
+Write 3 to 4 short sentences in plain text (no bullets, no bold): one thing the student \
+did well, one area to improve, and one clear next step. Do not invent numbers. Maximum 80 words."""

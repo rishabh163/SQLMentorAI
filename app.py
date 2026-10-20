@@ -16,7 +16,14 @@ import streamlit as st
 from src.charts import show_topic_chart
 from src.database import run_query
 from src.evaluator import evaluate, load_questions
-from src.llm_coach import ai_available, explain_lesson, get_doubt_answer, get_hint
+from src.llm_coach import (
+    ai_available,
+    explain_lesson,
+    fallback_feedback,
+    get_doubt_answer,
+    get_feedback,
+    get_hint,
+)
 from src.progress import (
     MODULES,
     VALID_STATUSES,
@@ -97,6 +104,7 @@ def show_learn():
         label = "AI tutor" if shown["source"] == "ai" else "Note"
         st.info(f"**{label}:** {shown['text']}")
 
+
 def reset_question():
     """Called when the difficulty changes, so a new question is picked."""
     st.session_state.question = None
@@ -110,6 +118,7 @@ def practice_level(attempts):
     if choice == "Auto":
         return current_difficulty(attempts)
     return choice
+
 
 def show_practice(learner, attempts, questions):
     """Practice mode: solve a question, get feedback, save progress."""
@@ -294,6 +303,18 @@ def show_summary(summary):
     section_label("Accuracy by module")
     show_topic_chart({m: s["accuracy"] for m, s in summary["topic_progress"].items()})
 
+    section_label("AI learning feedback")
+    count = len(st.session_state.attempts)
+    if st.button("🤖 Get learning feedback", disabled=(count == 0)):
+        with st.spinner("Writing feedback..."):
+            answer = get_feedback(summary)
+        st.session_state.feedback = {**answer, "count": count}
+        st.rerun()  # rerun, so the PDF in the sidebar also gets the feedback
+    shown = st.session_state.get("feedback")
+    if shown and shown["count"] == count:  # hide it if new answers came after it
+        label = "AI tutor" if shown["source"] == "ai" else "Note"
+        st.info(f"**{label}:** {shown['text']}")
+
 
 def read_uploaded_progress(uploaded_file, questions):
     """Read an uploaded progress file.
@@ -336,7 +357,14 @@ def show_backup(learner, attempts, questions, summary):
     """
     # 1) Report for reading and submitting
     try:
-        pdf_bytes = build_report(learner, summary, attempts)
+        # Use the AI feedback if the learner asked for it and it is still fresh.
+        # Otherwise the PDF gets the simple feedback written from the numbers.
+        feedback = st.session_state.get("feedback")
+        if not feedback or feedback["count"] != len(attempts):
+            feedback = None
+            if summary["overall_accuracy"] is not None:
+                feedback = {"text": fallback_feedback(summary), "source": "fallback"}
+        pdf_bytes = build_report(learner, summary, attempts, feedback)
     except Exception as error:  # for example: fpdf2 is not installed
         pdf_bytes = None
         st.caption(f"PDF report is not available: {error}")
@@ -373,6 +401,7 @@ def show_backup(learner, attempts, questions, summary):
             st.session_state.hints_shown = 0
             st.session_state.result = None
             st.session_state.quiz_questions = None
+            st.session_state.feedback = None
             st.toast("Progress restored.")
             st.rerun()
 
@@ -400,8 +429,10 @@ if st.session_state.get("learner") != learner:
     st.session_state.result = None
     st.session_state.quiz_questions = None
     st.session_state.chat = []
+    st.session_state.feedback = None
 
 attempts = st.session_state.attempts
+
 sidebar_label("DIFFICULTY")
 st.sidebar.selectbox(
     "Difficulty",
