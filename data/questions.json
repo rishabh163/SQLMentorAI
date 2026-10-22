@@ -1,122 +1,142 @@
 [
   {
-    "id": "q01", "module": "SELECT + WHERE", "difficulty": "Beginner",
-    "scenario": "You are a Data Analyst at an e-commerce company. The marketing team is planning a campaign in Delhi.",
-    "task": "List the name and city of all customers who live in Delhi.",
+    "id": "q01",
+    "module": "SELECT + WHERE",
+    "difficulty": "Beginner",
+    "scenario": "You are a Data Analyst at an e-commerce company. The marketing team is planning a campaign for customers in Delhi.",
+    "task": "Available table: customers(customer_id, name, city). Write a query to display the name and city of every customer whose city is Delhi. Return only these two columns.",
     "expected_sql": "SELECT name, city FROM customers WHERE city = 'Delhi'",
     "order_matters": false,
     "hints": [
-      "Which table stores customer names and cities?",
-      "Use a WHERE clause to filter on the city column.",
-      "Text values go in single quotes, for example WHERE city = 'Delhi'."
+      "Which table contains the customer names and cities?",
+      "Select the name and city columns from the customers table, then filter using WHERE.",
+      "Compare the city column with the text value 'Delhi' using city = 'Delhi'."
     ]
   },
   {
-    "id": "q02", "module": "SELECT + WHERE", "difficulty": "Intermediate",
-    "scenario": "The pricing team wants to review premium electronics.",
-    "task": "Show product_name and price for Electronics products that cost more than 3000, cheapest first.",
+    "id": "q02",
+    "module": "SELECT + WHERE",
+    "difficulty": "Intermediate",
+    "scenario": "The pricing team at an e-commerce company wants to review expensive electronics.",
+    "task": "Available table: products(product_id, product_name, category, price). Display the product_name and price of products in the Electronics category with a price greater than 3000. Sort the results from lowest to highest price.",
     "expected_sql": "SELECT product_name, price FROM products WHERE category = 'Electronics' AND price > 3000 ORDER BY price",
     "order_matters": true,
     "hints": [
-      "You need two conditions in the WHERE clause. Which keyword joins them?",
-      "Use AND to combine category = 'Electronics' with a price condition.",
-      "Sorting is done with ORDER BY price (ascending is the default)."
+      "You need two conditions: the product category and its price.",
+      "Use AND to combine category = 'Electronics' and price > 3000.",
+      "Add ORDER BY price to sort from lowest to highest price."
     ]
   },
   {
-    "id": "q03", "module": "Aggregate Functions", "difficulty": "Beginner",
-    "scenario": "Your manager asks for a quick health check of the orders data.",
-    "task": "How many orders are in the orders table?",
+    "id": "q03",
+    "module": "Aggregate Functions",
+    "difficulty": "Beginner",
+    "scenario": "Your manager wants to know how many orders the e-commerce company has recorded.",
+    "task": "Available table: orders(order_id, customer_id, product_id, order_date, quantity, amount). Return one number: the total number of rows in the orders table. Count every order.",
     "expected_sql": "SELECT COUNT(*) FROM orders",
     "order_matters": false,
     "hints": [
-      "You need a function that counts rows.",
-      "COUNT(*) counts all rows in a table.",
-      "Select it directly from the orders table, no WHERE needed."
+      "You need an aggregate function that counts rows.",
+      "COUNT(*) counts every row in a table.",
+      "Use COUNT(*) with FROM orders."
     ]
   },
   {
-    "id": "q04", "module": "Aggregate Functions", "difficulty": "Beginner",
-    "scenario": "The finance team needs the overall sales figure.",
-    "task": "What is the total revenue, the sum of the amount column, across all orders?",
+    "id": "q04",
+    "module": "Aggregate Functions",
+    "difficulty": "Beginner",
+    "scenario": "The finance team wants to calculate the company's total sales revenue.",
+    "task": "Available table: orders(order_id, customer_id, product_id, order_date, quantity, amount). Calculate the total revenue by adding the amount values from all orders. Return one number.",
     "expected_sql": "SELECT SUM(amount) FROM orders",
     "order_matters": false,
     "hints": [
-      "Which aggregate function adds numbers together?",
-      "SUM(column_name) adds up all the values in a column.",
-      "Use SUM(amount) FROM orders."
+      "Which aggregate function adds numeric values together?",
+      "SUM(column_name) calculates the total of a column.",
+      "Apply SUM to the amount column in the orders table."
     ]
   },
   {
-    "id": "q05", "module": "GROUP BY + HAVING", "difficulty": "Intermediate",
-    "scenario": "The warehouse team wants to know which products move the most.",
-    "task": "For each product_id, show the total quantity ordered.",
+    "id": "q05",
+    "module": "GROUP BY + HAVING",
+    "difficulty": "Intermediate",
+    "scenario": "The warehouse team wants to measure the total quantity ordered for each product.",
+    "task": "Available table: orders(order_id, customer_id, product_id, order_date, quantity, amount). For each product_id, calculate the total quantity ordered. Return one row per product, showing product_id and the total quantity. Do not filter out any product groups.",
     "expected_sql": "SELECT product_id, SUM(quantity) FROM orders GROUP BY product_id",
     "order_matters": false,
     "hints": [
-      "You want one result row per product, not one for the whole table.",
-      "GROUP BY product_id creates one group per product.",
-      "Select product_id and SUM(quantity), then add GROUP BY product_id."
+      "You need a separate total for each product, rather than one total for the entire table.",
+      "Use GROUP BY to create one group for each product_id.",
+      "Select product_id and SUM(quantity), then group the results by product_id."
     ]
   },
   {
-    "id": "q06", "module": "GROUP BY + HAVING", "difficulty": "Intermediate",
-    "scenario": "The expansion team is looking for cities with a strong customer base.",
-    "task": "Show each city and its number of customers, but only cities that have at least 2 customers.",
+    "id": "q06",
+    "module": "GROUP BY + HAVING",
+    "difficulty": "Intermediate",
+    "scenario": "The business expansion team wants to identify cities with a larger customer base.",
+    "task": "Available table: customers(customer_id, name, city). Count the customers in each city. Display city and its customer count, but include only cities with at least 2 customers.",
     "expected_sql": "SELECT city, COUNT(*) FROM customers GROUP BY city HAVING COUNT(*) >= 2",
     "order_matters": false,
     "hints": [
-      "First count customers per city using GROUP BY.",
-      "WHERE filters rows before grouping. Which clause filters groups after counting?",
-      "Use HAVING COUNT(*) >= 2 after the GROUP BY."
+      "First group customers by city and count the rows in each group.",
+      "WHERE filters individual rows, while HAVING filters groups after aggregation.",
+      "Use HAVING COUNT(*) >= 2 after GROUP BY city."
     ]
   },
   {
-    "id": "q07", "module": "INNER JOIN + LEFT JOIN", "difficulty": "Intermediate",
-    "scenario": "Customer support needs to see who placed which order.",
-    "task": "List the customer name and order_id for every order.",
+    "id": "q07",
+    "module": "INNER JOIN + LEFT JOIN",
+    "difficulty": "Intermediate",
+    "scenario": "The customer support team wants to see which orders were placed by which customers.",
+    "task": "Available tables: customers(customer_id, name, city) and orders(order_id, customer_id, product_id, order_date, quantity, amount). Display each order's order_id and the name of the customer who placed it. Include only orders that match a customer. Return the customer name and order ID.",
     "expected_sql": "SELECT c.name, o.order_id FROM customers c INNER JOIN orders o ON c.customer_id = o.customer_id",
     "order_matters": false,
     "hints": [
-      "The customer name and the order live in different tables.",
-      "Join customers and orders on the column they share.",
-      "Use INNER JOIN orders o ON c.customer_id = o.customer_id."
+      "The customer name is in customers, while the order ID is in orders.",
+      "Both tables share the customer_id column, which you can use to match rows.",
+      "Join customers and orders using INNER JOIN and the condition c.customer_id = o.customer_id."
     ]
   },
   {
-    "id": "q08", "module": "INNER JOIN + LEFT JOIN", "difficulty": "Advanced",
-    "scenario": "The retention team wants to email customers who have never bought anything.",
-    "task": "Find the names of customers who have never placed an order.",
+    "id": "q08",
+    "module": "INNER JOIN + LEFT JOIN",
+    "difficulty": "Advanced",
+    "scenario": "The customer retention team wants to contact customers who have never placed an order.",
+    "task": "Available tables: customers(customer_id, name, city) and orders(order_id, customer_id, product_id, order_date, quantity, amount). Find the names of customers who have no matching order. Keep customers even when no order exists, and return only the customer name.",
     "expected_sql": "SELECT c.name FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_id IS NULL",
     "order_matters": false,
     "hints": [
-      "An INNER JOIN drops customers with no orders. Which join keeps them?",
-      "A LEFT JOIN keeps every customer; missing orders appear as NULL.",
-      "After the LEFT JOIN, filter with WHERE o.order_id IS NULL."
+      "An INNER JOIN excludes customers without matching orders. Which join keeps every customer?",
+      "A LEFT JOIN keeps all customers and produces NULL for missing order details.",
+      "After the LEFT JOIN, filter for missing orders using WHERE o.order_id IS NULL."
     ]
   },
   {
-    "id": "q09", "module": "Subqueries", "difficulty": "Intermediate",
-    "scenario": "The merchandising team wants to find the pricier products.",
-    "task": "Show product_name and price for products priced above the average product price.",
+    "id": "q09",
+    "module": "Subqueries",
+    "difficulty": "Intermediate",
+    "scenario": "The merchandising team wants to identify products priced above the average price.",
+    "task": "Available table: products(product_id, product_name, category, price). Calculate the average price of all products in a subquery, then display the product_name and price of each product whose price is greater than that average.",
     "expected_sql": "SELECT product_name, price FROM products WHERE price > (SELECT AVG(price) FROM products)",
     "order_matters": false,
     "hints": [
-      "You need the average price first, then compare each product to it.",
-      "A query inside parentheses can be used as a value in WHERE.",
-      "Try WHERE price > (SELECT AVG(price) FROM products)."
+      "First think about how to calculate the average price across all products.",
+      "A subquery inside parentheses can calculate a value used by the outer WHERE clause.",
+      "Compare price with the result of (SELECT AVG(price) FROM products)."
     ]
   },
   {
-    "id": "q10", "module": "Subqueries", "difficulty": "Advanced",
-    "scenario": "The CRM team wants a list of active buyers.",
-    "task": "List the names of customers who have placed at least one order, using a subquery.",
+    "id": "q10",
+    "module": "Subqueries",
+    "difficulty": "Advanced",
+    "scenario": "The CRM team wants to identify customers who have purchased at least once.",
+    "task": "Available tables: customers(customer_id, name, city) and orders(order_id, customer_id, product_id, order_date, quantity, amount). Return the names of customers whose customer_id appears in the orders table. You must use a subquery to find the matching customer IDs.",
     "expected_sql": "SELECT name FROM customers WHERE customer_id IN (SELECT customer_id FROM orders)",
     "order_matters": false,
     "hints": [
-      "First think: which customer_ids appear in the orders table?",
-      "The IN operator checks whether a value is in a list of results.",
-      "Use WHERE customer_id IN (SELECT customer_id FROM orders)."
+      "First identify which customer IDs appear in the orders table.",
+      "The IN operator checks whether a value matches any value returned by a subquery.",
+      "Use WHERE customer_id IN (SELECT customer_id FROM orders) to filter the customers."
     ]
   }
 ]

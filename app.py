@@ -72,13 +72,15 @@ def load_lessons():
         return json.load(file)
 
 
+
 def show_learn():
-    """Learn mode: a short lesson, an example, and an AI explanation."""
+    """Learn mode: lesson, example, and a history of AI explanations."""
     lessons = load_lessons()
     names = [lesson["module"] for lesson in lessons]
     chosen = st.selectbox("Choose a module", names)
     lesson = lessons[names.index(chosen)]
 
+    # Always display the original lesson and example.
     lesson_card(lesson)
     section_label("Example query")
     st.code(lesson["example"], language="sql")
@@ -87,6 +89,7 @@ def show_learn():
     run_clicked = run_col.button("Run example")
     explain_clicked = explain_col.button("🤖 Explain differently")
 
+    # Run the example using SQLite.
     if run_clicked:
         result = run_query(lesson["example"])
         if result["ok"]:
@@ -94,16 +97,33 @@ def show_learn():
         else:
             st.error(result["error"])
 
+    # Keep a separate explanation history for each module.
+    if "lesson_ai_history" not in st.session_state:
+        st.session_state.lesson_ai_history = {}
+
+    history = st.session_state.lesson_ai_history
+
     if explain_clicked:
         with st.spinner("Thinking..."):
             answer = explain_lesson(lesson)
-        st.session_state.lesson_ai = {"module": lesson["module"], **answer}
 
-    shown = st.session_state.get("lesson_ai")
-    if shown and shown["module"] == lesson["module"]:
-        label = "AI tutor" if shown["source"] == "ai" else "Note"
-        st.info(f"**{label}:** {shown['text']}")
+        history.setdefault(lesson["module"], []).append(answer)
 
+    # Show the newest explanation first and preserve older explanations.
+    module_history = history.get(lesson["module"], [])
+
+    if module_history:
+        section_label("AI explanation history")
+
+        for index, answer in enumerate(reversed(module_history)):
+            number = len(module_history) - index
+            label = "AI tutor" if answer["source"] == "ai" else "Fallback note"
+
+            with st.expander(
+                f"Explanation {number} — {label}",
+                expanded=(index == 0),
+            ):
+                st.markdown(answer["text"])
 
 def reset_question():
     """Called when the difficulty changes, so a new question is picked."""
