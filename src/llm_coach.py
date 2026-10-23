@@ -10,8 +10,9 @@ Rules:
 import json
 import os
 import re
+import sys
+import urllib.error
 import urllib.request
-
 from src.prompts import FEEDBACK_TEMPLATE, HINT_TEMPLATE, LESSON_TEMPLATE, TUTOR_SYSTEM
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -66,12 +67,30 @@ def ai_available():
     return ai_provider() is not None
 
 
+def _log_error(where, error):
+    """Print a short, safe error line in the server log (Render Logs). Never prints the key."""
+    if isinstance(error, ValueError):
+        message = "(hidden for safety, may contain a header value)"
+    else:
+        message = str(error)
+        for name in ("GEMINI_API_KEY", "ANTHROPIC_API_KEY"):
+            secret = _setting(name)
+            if secret:
+                message = message.replace(secret, "[hidden]")
+    print(f"[SQLMentor AI] {where} failed: {type(error).__name__}: {message[:300]}",
+          file=sys.stderr, flush=True)
+
+
 def _post(url, body, headers):
     request = urllib.request.Request(
         url, data=json.dumps(body).encode("utf-8"), headers=headers)
-    with urllib.request.urlopen(request, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
-
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        # Keep only the HTTP status and a short message from the API
+        detail = error.read().decode("utf-8", errors="replace")[:200]
+        raise RuntimeError(f"HTTP {error.code}: {detail}") from None
 
 def ask_llm(system, messages, max_tokens=300):
     """Send a chat to the AI and return its text.
@@ -137,8 +156,8 @@ def get_hint(question, user_sql, status, reason, error=None, level=0) -> dict:
             text = ask_llm(TUTOR_SYSTEM, [{"role": "user", "content": prompt}], 200)
             if text:
                 return {"text": text, "source": "ai"}
-        except Exception:
-            pass  # any problem: use the simple hint below
+        except Exception as error:
+            _log_error("get_hint", error) # any problem: use the simple hint below
     return {"text": fallback_hint(question, reason, level), "source": "fallback"}
 
 
@@ -166,8 +185,8 @@ def get_doubt_answer(history, lessons) -> dict:
             text = ask_llm(TUTOR_SYSTEM, history[-8:], 350)
             if text:
                 return {"text": text, "source": "ai"}
-        except Exception:
-            pass
+        except Exception as error:
+            _log_error("get_hint", error)
     last = history[-1]["content"] if history else ""
     return {"text": fallback_doubt(last, lessons), "source": "fallback"}
 
@@ -184,8 +203,8 @@ def explain_lesson(lesson) -> dict:
             text = ask_llm(TUTOR_SYSTEM, [{"role": "user", "content": prompt}], 300)
             if text:
                 return {"text": text, "source": "ai"}
-        except Exception:
-            pass
+        except Exception as error:
+            _log_error("get_hint", error)
     return {"text": "AI help is not connected right now. Read the key points again, "
                     "then press Run example to see the result.", "source": "fallback"}
 
@@ -223,8 +242,8 @@ def get_feedback(summary) -> dict:
             text = ask_llm(TUTOR_SYSTEM, [{"role": "user", "content": prompt}], 250)
             if text:
                 return {"text": text, "source": "ai"}
-        except Exception:
-            pass  # any problem: use the simple feedback below
+        except Exception as error:
+            _log_error("get_hint", error) # any problem: use the simple feedback below
     return {"text": fallback_feedback(summary), "source": "fallback"}
 
 
