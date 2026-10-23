@@ -474,3 +474,48 @@ div[data-testid="stFileUploaderDropzone"] {
     border: 2px dashed #c7c9f5;
     background: #fafafd;
 }
+/* ---------- AI provider badges ---------- */
+.sm-provider-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.5;
+    border: 1px solid transparent;
+    margin: 4px 0 8px 0;
+}
+
+.sm-provider-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.sm-provider-gemini {
+    color: #4338ca;
+    background: #eef0ff;
+    border-color: #c7c9f5;
+}
+
+.sm-provider-groq {
+    color: #7e22ce;
+    background: #f3e8ff;
+    border-color: #e9d5ff;
+}
+
+.sm-provider-fallback {
+    color: #4b5563;
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.sm-provider-unknown {
+    color: #374151;
+    background: #f9fafb;
+    border-color: #d1d5db;
+}

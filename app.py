@@ -72,6 +72,24 @@ def load_lessons():
         return json.load(file)
 
 
+def show_provider_badge(source):
+    """Display a consistent badge for the AI response provider."""
+    providers = {
+        "gemini": ("Gemini AI", "sm-provider-gemini"),
+        "groq": ("Groq AI", "sm-provider-groq"),
+        "fallback": ("Built-in Fallback", "sm-provider-fallback"),
+    }
+
+    label, css_class = providers.get(
+        source, ("Unknown Source", "sm-provider-unknown")
+    )
+
+    st.markdown(
+        f'<span class="sm-provider-badge {css_class}">{label}</span>',
+        unsafe_allow_html=True,
+    )
+
+
 
 def show_learn():
     """Learn mode: lesson, example, and a history of AI explanations."""
@@ -117,12 +135,11 @@ def show_learn():
 
         for index, answer in enumerate(reversed(module_history)):
             number = len(module_history) - index
-            label = "AI tutor" if answer["source"] == "ai" else "Fallback note"
-
             with st.expander(
-                f"Explanation {number} — {label}",
+                f"Explanation {number}",
                 expanded=(index == 0),
             ):
+                show_provider_badge(answer.get("source"))
                 st.markdown(answer["text"])
 
 def reset_question():
@@ -207,8 +224,8 @@ def show_practice(learner, attempts, questions):
         tip = st.session_state.get("tip")
         if (result["status"] != "correct" and tip
                 and st.session_state.get("tip_question") == question["id"]):
-            label = "AI coach" if tip["source"] == "ai" else "Tip"
-            st.info(f"**{label}:** {tip['text']}")
+            show_provider_badge(tip.get("source"))
+            st.info(tip["text"])
 
 
 def pick_quiz_questions(questions):
@@ -285,10 +302,13 @@ def show_doubt():
         st.info("The AI is not connected, so the tutor answers from the lessons.")
 
     chat = st.session_state.chat
+
     for message in chat:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+            if message["role"] == "assistant":
+                show_provider_badge(message.get("source", "unknown"))
     asked = sum(1 for message in chat if message["role"] == "user")
     if asked >= MAX_CHAT_QUESTIONS:
         st.warning("You reached the question limit for this session.")
@@ -299,7 +319,11 @@ def show_doubt():
         chat.append({"role": "user", "content": question.strip()[:MAX_CHAT_LENGTH]})
         with st.spinner("Thinking..."):
             answer = get_doubt_answer(chat, load_lessons())
-        chat.append({"role": "assistant", "content": answer["text"]})
+        chat.append({
+            "role": "assistant",
+            "content": answer["text"],
+            "source": answer["source"],
+        })
         st.rerun()
 
     if chat and st.button("Clear chat"):
@@ -332,8 +356,8 @@ def show_summary(summary):
         st.rerun()  # rerun, so the PDF in the sidebar also gets the feedback
     shown = st.session_state.get("feedback")
     if shown and shown["count"] == count:  # hide it if new answers came after it
-        label = "AI tutor" if shown["source"] == "ai" else "Note"
-        st.info(f"**{label}:** {shown['text']}")
+        show_provider_badge(shown.get("source"))
+        st.info(shown["text"])
 
 
 def read_uploaded_progress(uploaded_file, questions):
