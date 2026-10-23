@@ -16,7 +16,7 @@ import urllib.request
 from src.prompts import FEEDBACK_TEMPLATE, HINT_TEMPLATE, LESSON_TEMPLATE, TUTOR_SYSTEM
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-GEMINI_MODEL = "gemini-3.6-flash"
+GEMINI_MODEL = "gemini-3.8-flash"
 CLAUDE_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL = "claude-haiku-5-5"
 
