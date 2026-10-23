@@ -1,35 +1,35 @@
-
 # SQLMentor AI — Project Notes
 
 **Project:** SQLMentor AI  
 **Category:** AI Tutor / SQL Learning Application  
-**Academic context:** IIT Patna AI Tutor capstone  
+**Academic context:** IIT Patna AI Tutor Capstone  
 **Repository:** https://github.com/rishabh163/SQLMentorAI  
 **Branch:** `master`  
 **Author:** Rishabh Gaur  
-**Status:** Core application tested locally; final deployment and submission verification remain to be completed.
+**Status:** Deployed on Render; AI provider fallback tested locally and on the deployed app.
 
 ---
 
 ## 1. Problem Statement
 
-SQL beginners often struggle to translate a real-world requirement into a correct SQL query, understand execution errors, and identify which topics need more practice.
+SQL beginners often struggle to write correct queries, understand SQL errors, and identify topics that need more practice.
 
-SQLMentor AI addresses this problem through a focused learning environment that combines structured SQL lessons, query execution, result-based assessment, AI coaching, and learner progress tracking.
+SQLMentor AI provides structured lessons, SQL execution, result-based evaluation, AI coaching, and learner progress tracking in one Streamlit application.
 
 ## 2. Target Learners
 
-Aspiring Data Analysts and Data Scientists who are learning SQL and want guided practice with a small relational database.
+Aspiring Data Analysts and Data Scientists who want guided SQL practice using a sample relational database.
 
 ## 3. Project Objectives
 
 - Teach five essential SQL modules.
 - Provide Learn, Practice, and Quiz modes.
-- Execute learner SQL queries against SQLite.
-- Evaluate query results using application logic.
-- Use Gemini for hints, explanations, and coaching.
-- Track learner progress and recommend a difficulty level.
-- Provide useful fallback feedback when AI assistance is unavailable.
+- Execute learner queries using SQLite.
+- Evaluate answers through application logic.
+- Use Gemini and Groq for AI tutoring when available.
+- Provide built-in fallback coaching if AI providers fail.
+- Track learner progress and recommend difficulty levels.
+- Generate learning summaries and available progress reports.
 
 ## 4. Fixed Scope: Five SQL Modules
 
@@ -39,7 +39,7 @@ Aspiring Data Analysts and Data Scientists who are learning SQL and want guided 
 4. INNER JOIN + LEFT JOIN
 5. Subqueries
 
-These five modules define the project's SQL learning scope. Future enhancements must not silently expand or replace this scope.
+These five modules define the project's scope.
 
 ## 5. Technology Stack
 
@@ -48,181 +48,206 @@ These five modules define the project's SQL learning scope. Future enhancements 
 - SQLite
 - Pandas
 - Gemini API
+- Groq API
 - JSON
 - FPDF2, where used for PDF output
 - Git and GitHub
+- Render for deployment
 
-The Gemini integration uses HTTP requests through Python's standard library rather than requiring a separate Gemini SDK.
+Both AI providers are accessed through HTTP requests using Python's standard library.
 
-## 6. Architecture and Responsibilities
+## 6. Application Architecture
 
-### Streamlit application — `app.py`
+### `app.py` — Main application
 
-Provides the user interface and connects lessons, practice questions, quizzes, learner progress, AI coaching, and reporting.
+Provides the interface for lessons, practice, quizzes, AI assistance, progress tracking, and learning summaries.
 
-### SQLite execution — `src/database.py`
+### `src/database.py` — SQL execution
 
-Creates or initializes the sample database when required, executes permitted learner queries, and returns query results or errors.
+- Initializes the sample SQLite database when required.
+- Executes permitted learner queries.
+- Returns query results or execution errors.
+- Applies read-only restrictions and a maximum result-row limit of 500.
 
-The query runner applies read-only restrictions and a result-row limit. These safeguards reduce the risk of unintended database changes.
+### `src/evaluator.py` — Answer evaluation
 
-### Answer evaluation — `src/evaluator.py`
+- Executes learner and reference queries.
+- Compares query results using application rules.
+- Supports outcomes such as correct, partial, incorrect, and error.
 
-Compares the learner's query results with the reference query results. Evaluation outcomes include correct, partial, incorrect, and error.
+**Critical rule:** SQLite executes the SQL, and the application evaluator determines correctness. Neither Gemini nor Groq decides whether an answer is correct.
 
-**Critical design rule:** SQLite execution and the application's evaluator determine correctness. Gemini must not determine whether an SQL answer is correct.
+### `src/llm_coach.py` — AI tutoring
 
-### AI coaching — `src/llm_coach.py`
+Provider order:
 
-Connects to Gemini for tutoring, explanations, hints, and feedback. It also provides fallback feedback when AI assistance is unavailable.
+1. Gemini
+2. Groq
+3. Built-in fallback
 
-AI responses are instructional assistance, not the source of truth for SQL evaluation.
+Used for hints, explanations, SQL doubt-solving, and learning feedback. The application records the actual response source for provider badges.
 
-### Prompt definitions — `src/prompts.py`
+### `src/prompts.py` — Prompt templates
 
-Contains the instructions and templates used to guide AI coaching and explanations. Prompt design aims to keep the tutor focused on SQL learning and avoid treating learner-provided text as privileged instructions.
+Contains instructions and templates for AI explanations, hints, and learning feedback.
 
-### Learner progress — `src/progress.py`
+### `src/progress.py` — Learner progress
 
-Maintains learner progress in JSON files and supports rule-based difficulty recommendations.
+Stores learner progress in local JSON files and calculates rule-based difficulty recommendations.
 
-The local JSON approach is intentionally lightweight and avoids a compulsory external database service.
+### Other files
 
-### Charts and reporting
-
-- `src/charts.py`: progress visualizations.
-- `src/report.py`: report or export functionality.
-- `src/ui.py`: reusable interface components.
-
-### Learning content
-
-- `data/lessons.json`: lesson content and example queries.
-- `data/questions.json`: predefined practice and quiz questions.
-
-The sample SQLite database is generated by the application when missing and should not be committed as private or generated runtime data.
+- `src/charts.py` — Progress visualizations.
+- `src/report.py` — Report or export functionality.
+- `src/ui.py` — Reusable UI components.
+- `data/lessons.json` — Lesson content and examples.
+- `data/questions.json` — Predefined practice and quiz questions.
+- `assets/style.css` — Application styling.
 
 ## 7. Sample Database Schema
 
-### customers
-`customer_id`, `name`, `city`
+**`customers`**
+- `customer_id`
+- `name`
+- `city`
 
-### products
-`product_id`, `product_name`, `category`, `price`
+**`products`**
+- `product_id`
+- `product_name`
+- `category`
+- `price`
 
-### orders
-`order_id`, `customer_id`, `product_id`, `order_date`, `quantity`, `amount`
+**`orders`**
+- `order_id`
+- `customer_id`
+- `product_id`
+- `order_date`
+- `quantity`
+- `amount`
 
-These tables support filtering, aggregation, grouping, joins, and subquery exercises.
+These tables support filtering, aggregation, grouping, joins, and subqueries.
 
 ## 8. Learner Personalization
 
-The application supports learner profiles and progress tracking. Its rule-based level recommendation uses recorded accuracy after the minimum number of questions has been attempted.
+The application supports learner profiles, progress tracking, and rule-based difficulty recommendations.
 
-Current rule:
+Current accuracy rules:
 
-- Accuracy below 50%: Beginner
-- Accuracy from 50% through 80%: Intermediate
-- Accuracy above 80%: Advanced
+- Below 50%: Beginner
+- 50% through 80%: Intermediate
+- Above 80%: Advanced
 
-This is a simple rule-based recommendation, not a trained machine-learning model.
+The recommendation uses recorded performance after the configured minimum number of questions has been attempted. It is rule-based, not a trained machine-learning model.
 
 ## 9. Question Bank and Evaluation
 
-Questions are currently loaded from `data/questions.json`. The bank contains predefined exercises, including reference SQL and question-specific evaluation settings.
+Questions are loaded from `data/questions.json`.
 
-The evaluator compares query results rather than relying on an LLM to judge correctness. This accepts different SQL formulations when their results satisfy the evaluation rules.
+The evaluator compares learner results with reference results rather than asking an LLM to judge correctness.
 
-Known limitation: matching results do not always prove that a query follows every requested technique. Queries that produce the same result on a small dataset may be indistinguishable to a result-based evaluator.
+**Known limitation:** Different SQL queries can return the same results on a small dataset. Matching output does not always prove that a learner used the exact technique requested.
 
-Dynamic question generation is a future enhancement, not part of the current implementation.
+Dynamic question generation is not part of the current implementation.
 
-## 10. AI API and Secret Management
+## 10. AI Providers and Configuration
 
-The Gemini API is used for coaching rather than authoritative answer evaluation.
+### Provider sequence
 
-The API key should be supplied through a local Streamlit secrets file or an appropriate environment variable supported by the application.
+| Priority | Provider | Purpose |
+|---|---|---|
+| 1 | Gemini | AI hints, explanations, and coaching |
+| 2 | Groq | Alternative AI provider when Gemini fails |
+| 3 | Built-in fallback | Basic assistance when both providers fail |
 
-Security requirements:
+Gemini returned HTTP 429 quota errors during the latest test. Groq successfully answered consecutive SQL questions after the chat-history payload was corrected.
 
-- Never commit real API keys or passwords.
-- Keep `.streamlit/secrets.toml` out of Git.
-- Do not display credentials in logs, screenshots, or reports.
-- Verify that fallback coaching works when the API key is missing or the service is unavailable.
+Gemini availability may change depending on quota, rate limits, account access, and provider service status.
 
-## 11. Data Persistence and Deployment
+### API configuration
 
-Learner progress is currently stored in local JSON files.
+The application reads API keys from environment variables or Streamlit secrets.
 
-This works for a lightweight prototype, but it is not equivalent to durable cloud storage. On hosting platforms with ephemeral filesystems, progress may be lost after a restart or redeployment.
+For local development, create `.streamlit/secrets.toml`:
 
-The application should be tested after deployment to verify query execution, AI configuration, and available progress/export functions.
+```toml
+GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+GEMINI_MODEL = "YOUR_SUPPORTED_GEMINI_MODEL"
+GROQ_API_KEY = "YOUR_GROQ_API_KEY"
+GROQ_MODEL = "YOUR_SUPPORTED_GROQ_MODEL"
+```
 
-A persistent database is optional for the current MVP.
+Use valid model identifiers supported by your API accounts. The model settings are configurable.
+
+For Render, configure the required keys and any model overrides in the service's environment-variable settings.
+
+**Security requirements**
+
+- Never commit API keys or `secrets.toml`.
+- Never print credentials in logs or screenshots.
+- Keep learner progress and generated database files out of version control.
+- Do not send the expected SQL answer to the AI for correctness evaluation.
+
+## 11. Progress Storage and Deployment
+
+**Live application:** https://sqlmentorai.onrender.com
+
+The deployed application has been tested, including consecutive AI tutoring questions using Groq.
+
+Learner progress is stored in local JSON files. This is suitable for the lightweight prototype, but Render's default filesystem may be ephemeral. Progress may be lost after a restart or redeployment.
+
+Durable cloud storage is not implemented as part of the current MVP.
 
 ## 12. Testing Checklist
 
-The developer has reported that the current project tests pass. Final regression testing should include:
+### Verified so far
 
-- [ ] Application starts without errors.
-- [ ] All five SQL modules are available.
-- [ ] Learn mode displays lessons and executes example queries.
-- [ ] AI explanations and explanation history work.
-- [ ] Practice mode executes SQL and evaluates results.
-- [ ] Quiz mode records results and updates progress.
-- [ ] Correct, incorrect, and invalid SQL submissions are handled.
-- [ ] Read-only restrictions are enforced.
-- [ ] AI fallback feedback works without API access.
-- [ ] Learner profiles and progress summaries work.
-- [ ] Available reporting/export features work.
-- [ ] No credentials or private learner data are committed.
-- [ ] The deployed application passes the same key checks.
+- [x] Python syntax check passed for `src/llm_coach.py`.
+- [x] Local Streamlit application starts.
+- [x] Consecutive AI doubt questions were answered using Groq.
+- [x] Provider fallback was exercised when Gemini returned HTTP 429.
+- [x] The deployed Render application was reported working.
 
-Only mark a checklist item complete after verifying it.
+### Final regression checks
+
+- [ ] Verify all five SQL modules.
+- [ ] Verify Learn, Practice, and Quiz modes.
+- [ ] Test correct, incorrect, and invalid SQL submissions.
+- [ ] Confirm SQLite evaluation determines correctness.
+- [ ] Verify read-only restrictions and the row limit.
+- [ ] Test fallback behavior when both AI providers fail.
+- [ ] Verify learner profiles, progress, and summaries.
+- [ ] Verify available report/export functions.
+- [ ] Confirm secrets and private learner data are not committed.
+
+Mark remaining checks complete only after testing them.
 
 ## 13. Known Limitations
 
 1. Questions come from a predefined JSON bank.
-2. Dynamic AI question generation is not implemented.
+2. Dynamic AI-generated question creation is not implemented.
 3. Progress uses local JSON files rather than durable cloud storage.
-4. Result-based comparison cannot guarantee that every query follows the exact requested technique.
-5. AI coaching requires API access for Gemini-generated responses; fallback behavior is provided for unavailable AI assistance.
-6. Deployment and cloud persistence must be verified independently of local testing.
+4. Result-based evaluation cannot guarantee that every query follows the exact requested technique.
+5. AI-generated coaching depends on provider availability and quotas.
+6. Built-in fallback provides basic assistance but is less flexible than an LLM.
+7. Cloud persistence and the complete final regression checklist require independent verification.
 
 ## 14. Future Enhancements
 
-These items are proposed, not currently implemented:
+These are proposed improvements, not current features:
 
-### Dynamic SQL Question Generation
-Generate new exercises using the selected module, learner difficulty, and learning history. Validate the question structure and reference SQL before the exercise becomes available. SQLite and the existing evaluator must remain responsible for answer correctness.
+- **Dynamic question generation:** Generate and validate questions by module and difficulty.
+- **Persistent cloud storage:** Consider PostgreSQL or Supabase if durable multi-user progress becomes necessary.
+- **Stronger query evaluation:** Add more test cases and checks for requested SQL techniques.
+- **Improved personalization:** Use module-wise accuracy and recurring mistakes.
+- **Enhanced analytics:** Improve learner progress visualizations and reporting.
 
-### Persistent Cloud Database
-Consider PostgreSQL or Supabase if the project later requires reliable cross-device progress, centralized learner records, or multi-user accounts.
+## 15. Final Project Principle
 
-### Stronger Query Evaluation
-Add more test data and validation cases to reduce false positives from queries that happen to return the same result.
-
-### Improved Personalization
-Use module-level accuracy and recurring error patterns to recommend targeted practice.
-
-### Enhanced Analytics
-Improve progress charts and learner reports.
-
-## 15. Deployment Record
-
-**Target platform:** Render  
-**Live URL:** Pending successful deployment  
-**Deployment status:** Do not mark as deployed until the live application has been tested.
-
-After deployment, record the actual public URL, deployment date, and any issues discovered during live testing.
-
-## 16. Final Project Principle
-
-SQLMentor AI uses AI to support learning, not to replace reliable programmatic evaluation.
+SQLMentor AI uses AI to support learning, not replace reliable programmatic evaluation.
 
 - SQLite executes SQL.
 - The evaluator compares results.
-- Gemini explains, hints, and coaches.
+- Gemini and Groq provide coaching.
+- Built-in fallback helps when AI services are unavailable.
 - JSON stores local learner progress.
-- The learner remains responsible for writing and understanding queries.
-
-This separation of responsibilities is a central design decision in the project.
+- The learner remains responsible for writing and understanding SQL queries.
