@@ -9,6 +9,24 @@ It combines structured lessons, SQL practice, quizzes, AI-powered coaching, and 
 **Live application:** [https://sqlmentorai.onrender.com](https://sqlmentorai.onrender.com)
 **GitHub repository:** [https://github.com/rishabh163/SQLMentorAI](https://github.com/rishabh163/SQLMentorAI)
 
+## Screenshots
+
+### Learn mode: lesson with a runnable example
+
+![Learn mode: lesson with a runnable example](screenshots/learn-lesson.png)
+
+### Practice mode: SQL error with an AI hint
+
+![Practice mode: SQL error with an AI hint](screenshots/practice-error-hint.png)
+
+### Ask a Doubt: AI tutor
+
+![Ask a Doubt: AI tutor](screenshots/ask-doubt.png)
+
+### Learning summary and AI feedback
+
+![Learning summary and AI feedback](screenshots/summary.png)
+
 ## Features
 
 ### 1. Learn Mode
@@ -84,6 +102,12 @@ The project scope is intentionally limited to:
 | Git and GitHub | Version control                        |
 | Render         | Deployment                             |
 
+## Architecture
+
+![Architecture of SQLMentor AI](screenshots/architecture.png)
+
+SQLite and the evaluator decide correctness. The AI only coaches, and the answer key is never sent to it.
+
 ## How SQL Answers Are Evaluated
 
 The application executes the learner's SQL query and a reference query, then compares their results according to the evaluation rules.
@@ -120,6 +144,12 @@ SQLMentorAI/
 │   └── config.toml
 ├── assets/
 │   └── style.css
+├── screenshots/
+│   ├── learn-lesson.png
+│   ├── practice-error-hint.png
+│   ├── ask-doubt.png
+│   ├── summary.png
+│   └── architecture.png
 ├── data/
 │   ├── questions.json
 │   └── lessons.json
